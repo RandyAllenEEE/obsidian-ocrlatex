@@ -1,74 +1,81 @@
-# About 🗞️
+# Image2LaTEX for Obsidian
 
-This extension takes your latest copied image from your clipboard and either converts it to Markdown or MathJax. The extensions have three different OCR providers that you can pick between
-1. [Texify](https://github.com/VikParuchuri/texify) (Recomended) - Self Hosted service that convert your image to Markdown
-2. [SimpleTex](https://update.simpletex.cn/) - Hosted service that converts converts your image to Latex wrapped in Math Block
-3. [pix2tex](https://github.com/lukas-blecher/LaTeX-OCR) - Self Hosted service that converts your image to Latex wrapped in Math Block
-   
-See GIF below for example of usage with a keybinding:
-![](docs/example.gif)
-A couple of things happen here
+**Image2LaTEX** 是一个 Obsidian 插件，它可以将剪贴板中的图像（如数学公式截图）转换为 LaTeX 公式或 Markdown 文本。
 
-1. I take a screenshot of the formula on the left
-2. I use a keybinding to trigger the OCRToLatex
-3. A loading indicator is inserted
+本插件集成了多种 OCR 服务商，包括 SimpleTex、Texify、Pix2Tex，以及**自定义 LLM（大语言模型）** 支持。
 
-# Setup 🚀
+> 本项目基于 **[obsidian-ocrlatex](https://github.com/Hugo-Persson/obsidian-ocrlatex)** 开发。
+> 核心逻辑与架构归功于原作者 **Hugo Persson**。
+> 
+> This project is a fork/enhanced version based on **[obsidian-ocrlatex](https://github.com/Hugo-Persson/obsidian-ocrlatex)**. All credits for the original idea and core implementation go to **Hugo Persson**. This version extends the functionality to include generic LLM support.
 
-To get started first get an api token, see below. Then go to settings and insert it. After this you are ready to use the plugin. Try to snip a math formula to your clipboard and run the command `Generate latex from last image to clipboard
-## Texify ⭐
-This provider requires you to self host it, if you don't have a server or a computer that can run the model I would recomend using SimpleTex instead.
+## ✨ 主要功能 (Features)
 
-To setup this project clone the repo [texify-wep-api](https://github.com/Hugo-Persson/texify-wep-api) and follow the setup for that project. Now a web service will be exposed and you can paste the URL into the field `url` in Obsidian settings. If you run on localhost this will be ´localhost:5000` but you could host this on your own server and you would then use the appropiate URL. 
+1.  **剪贴板图像识别**：直接读取剪贴板中的图片进行转换。
+2.  **多种转换模式**：
+    * **Inline LaTeX**: 行内公式 `$ ... $`
+    * **Multiline LaTeX**: 多行公式块 `$$...$$`
+    * **Markdown**: 直接转换为 Markdown 文本
+3.  **多服务商支持**：
+    * **LLM (New!)**: 支持 OpenAI 格式的 API（如 GPT-4o, Claude, 本地模型等），在自定义的prompt下可以适用于Inline/Multiline/包含公式的文本等。
+    * **SimpleTex**: 免费且高精度的在线公式识别服务。
+    * **Texify**: 自托管的 Markdown 转换服务。
+    * **Pix2Tex**: 自托管的 LaTeX OCR 服务。
 
+## 📥 安装 (Installation)
 
-**Note:** The first request to Texify will be slow because the model needs to be loaded, after the first request the API will much faster. 
-## SimpleTex
-### Getting API Token 🔐
+由于这是一个手动构建版本，请按照以下步骤安装：
 
-To use this plugin you need to create a developer account at https://simpletex.cn. Below I describe how to do this
+1.  进入您的 Obsidian 仓库目录：`.obsidian/plugins/`。
+2.  新建文件夹 `image2latex`。
+3.  将 `main.js`, `manifest.json`, `styles.css` 放入该文件夹。
+4.  重启 Obsidian，在“第三方插件”设置中启用 **Image2LaTEX**。
 
-1. Go to https://simpletex.cn/api
-2. Click "Go to API Dashboard"
-3. Create an account
-4. After this go to `User Access Token` and click `Create token`
-5. Copy the token and paste into Obsidian settings ![](docs/UAT.png)
-6. Now you are ready to use the addon 🥳
+## 🚀 设置与配置 (Configuration)
 
-## Pix2Tex 
-This is an self hosted alternative to SimpleTex. There are two main way to host it, either your run through Docker or host directly with python. 
-**Note:** Docker does not work on ARM, for example M series MacBooks, use Python instead.
-### Docker 🐳
-You can host Pix2Tex in Obsidian by using Docker. This is well explained in their docs https://hub.docker.com/r/lukasblecher/pix2tex
+在 Obsidian 的插件设置页中，您可以选择 LaTeX 和 Markdown 的默认提供商。
 
-### Python 🐍
-You can run the project directly with Python by
-1. Installing the package with `pip install pix2tex[api]`
-2. Running the Web Api with: `python -m pix2tex.api.run`
+### 1. 🤖 LLM (大语言模型) - *推荐*
+本版本新增功能。您可以使用任何兼容 OpenAI 接口的模型（如 GPT-4 Vision, Claude 3.5 Sonnet 或本地多模态模型）进行识别。
 
+* **Endpoint**: API 终端地址 (例如: `https://api.openai.com/v1/chat/completions` 或本地 `http://localhost:11434/v1/...`)。
+* **Model**: 模型名称 (例如: `gpt-4o`, `gpt-4-turbo`, `llava`)。
+* **API Key**: 您的 API 密钥。
+* **Max Tokens**: 生成的最大 Token 数 (默认为 300)。
+* **Prompts**: 您可以自定义提示词来优化 LaTeX 或 Markdown 的输出结果。
 
-### Configuring Obsidian 
+### 2. ☁️ SimpleTex
+一个免费且高精度的在线服务（推荐用于 LaTeX）。
 
-Enter the URL to the container, you need to postfix `/predict/` e.g. `http://localhost:8502/predict/`
-**Optional**: add username and password, if container is behind a basic auth proxy (e.g. [nginx](https://nginx.org/en/docs/http/ngx_http_auth_basic_module.html))
+1.  访问 [SimpleTex API Dashboard](https://simpletex.cn/api)。
+2.  注册/登录账户。
+3.  创建一个 Token。
+4.  将 Token 粘贴到插件设置的 `SimpleTex Token` 栏中。
 
+### 3. 🏠 Texify (自托管)
+适用于将图像转换为 Markdown 文本。
 
-# Future improvements ✅
+* 需要自托管模型，详见：[texify-web-api](https://github.com/Hugo-Persson/texify-wep-api)。
+* 部署后，在设置中填入 API URL (例如 `http://localhost:5000/predict`)。
 
--   [ ] Convert already pasted images
+### 4. 🐳 Pix2Tex (自托管)
+LaTeX OCR 的替代方案。
 
-# Contributing or requesting feature 😍
-- If you are missing something from the Plugin, please open an Issue
-- If you wish to contribute, please open a PR
+* 可以通过 Docker 或 Python 运行。
+* Docker部署: 参考 [pix2tex Docker](https://hub.docker.com/r/lukasblecher/pix2tex)。
+* Python部署:
+    ```bash
+    pip install pix2tex[api]
+    python -m pix2tex.api.run
+    ```
+* 在设置中填入 URL (例如 `http://localhost:8502/predict/`)。
 
+## 🎮 使用方法 (Usage)
 
-# Attribution 🙏
-
-Thanks to these libraries and services for making this plugin possible
-
--   https://www.npmjs.com/package/node-fetch
--   https://www.npmjs.com/package/form-data
--   https://simpletex.cn/
--   https://github.com/Hugo-Persson/texify-wep-api
--   https://github.com/VikParuchuri/texify
--   https://github.com/lukas-blecher/LaTeX-OCR
+1.  截图或复制包含数学公式的图片到剪贴板。
+2.  在 Obsidian 中打开命令面板 (`Ctrl/Cmd + P`)。
+3.  运行以下命令之一：
+    * `Image2LaTEX: Generate inline LaTeX from last image...` (生成行内公式)
+    * `Image2LaTEX: Generate multiline LaTeX from last image...` (生成多行公式块)
+    * `Image2LaTEX: Generate markdown from last image...` (生成 Markdown)
+4.  插件会显示 "Loading latex..."，识别完成后会自动替换为结果。
