@@ -1,8 +1,8 @@
 {
 	"id": "image2latex",
 	"name": "Image2LaTEX",
-	"version": "1.1.2",
-	"minAppVersion": "2.0.0",
+	"version": "2.0.0",
+	"version": "1.16.0",
 	"description": "Convert your images to Markdown and MathJax",
 	"author": "Randy Allen",
 	"authorUrl": "https://github.com/RandyAllenEEE",
