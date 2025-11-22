@@ -16340,7 +16340,7 @@ function getMarkdownProvider(settings) {
     return new Texify(settings.texify);
   } else {
     // LLM作为Markdown provider
-    return new AIModelConverter(settings, "markdown");
+    return new AIModelConverter(false, settings, "markdown");
   }
 }
 
