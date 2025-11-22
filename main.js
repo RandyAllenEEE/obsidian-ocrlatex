@@ -16053,9 +16053,11 @@ var Pic2Tex = class {
 
 // AI Model Converter Class
 var AIModelConverter = class {
-  constructor(settings, promptType) {
+  // 修改构造函数，接收 isMultiline
+  constructor(isMultiline, settings, promptType) {
+    this.isMultiline = isMultiline; // 保存状态
     this.settings = settings;
-    this.promptType = promptType; // "latex" or "markdown"
+    this.promptType = promptType;
   }
   
   async sendRequest(image) {
@@ -16103,11 +16105,36 @@ var AIModelConverter = class {
     if (!response.ok) {
       throw new Error(`AI model request failed with status ${response.status}`);
     }
-    
+
     const data = await response.json();
-    const result = data.choices[0].message.content.trim();
+    let result = data.choices[0].message.content.trim();
     
-    return result;
+    // 清洗数据 (防止 LLM 不听话还是输出了 $或$$)
+    // 去除可能存在的 markdown 代码块 ```latex ... ```
+    result = result.replace(/^```(latex)?|```$/g, '').trim();
+    // 去除首尾可能存在的 $ 或 $$
+    if (result.startsWith('$$') && result.endsWith('$$')) {
+        result = result.slice(2, -2).trim();
+    } else if (result.startsWith('$') && result.endsWith('$')) {
+        result = result.slice(1, -1).trim();
+    }
+
+    // 根据用户命令模式进行包裹
+    if (this.promptType === "markdown") {
+        return result; // Markdown 模式不包裹
+    }
+
+    if (this.isMultiline) {
+        // 多行模式：使用 $$ 包裹，并处理多行换行逻辑
+        if (result.includes("\\\\") && !result.includes("\\begin{")) {
+            // 如果包含换行符且没有环境包裹，添加 gather 环境
+            return `$$\\begin{gather}\n${result}\n\\end{gather}$$`;
+        }
+        return `$$\n${result}\n$$`;
+    } else {
+        // 单行模式：使用 $ 包裹
+        return `$${result}$`;
+    }
   }
 };
 
@@ -16303,8 +16330,8 @@ function getLatexProvider(isMultiline, settings) {
   } else if (settings.latexProvider === "Texify") {
     return new Texify(settings.texify);
   } else {
-    // LLM作为LaTeX provider
-    return new AIModelConverter(settings, "latex");
+    // 将 isMultiline 传入构造函数
+    return new AIModelConverter(isMultiline, settings, "latex");
   }
 }
 
